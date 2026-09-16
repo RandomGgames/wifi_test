@@ -6,19 +6,94 @@
 {How to use the script}
 """
 
-import json
-import logging
-import sys
 from datetime import datetime
 from pathlib import Path
+import json
+import logging
+import os
+import re
+import subprocess
+import sys
+
+import speedtest
 
 __version__ = "0.0.0"  # Major.Minor.Patch
 
 logger = logging.getLogger(__name__)
 
 
+def get_wifi_signal():
+    """Gets the current Wi-Fi signal strength as a percentage."""
+    # logger.debug("Checking Wi-Fi signal strength...")
+    try:
+        # Runs the Windows native tool to check wireless info
+        output = subprocess.check_output("netsh wlan show interfaces", shell=True).decode('utf-8')
+
+        # Searches for the 'Signal' line in the output
+        match = re.search(r"Signal\s*:\s*(\d+)%", output)
+        if match:
+            return f"{match.group(1)}%"
+        return "Unknown (Are you connected to Wi-Fi?)"
+    except Exception:
+        return "Error reading Wi-Fi signal."
+
+
+def run_speed_test():
+    """Performs a generic download and upload speed test."""
+    logger.debug("Running speed test (this may take a moment)...")
+    try:
+        # Connects to the closest speedtest.net server
+        st = speedtest.Speedtest()
+        st.get_best_server()
+
+        # Convert speeds from bits per second to Megabits per second (Mbps)
+        download_speed = st.download() / 1_000_000
+        upload_speed = st.upload() / 1_000_000
+        ping = st.results.ping
+
+        return download_speed, upload_speed, ping
+    except Exception as e:
+        logger.debug("Speed test failed: %s", e)
+        return None, None, None
+
+
+def get_windows_rssi():
+    """Converts the Windows Wi-Fi quality percentage to a dBm RSSI value."""
+    # logger.debug("Checking Wi-Fi RSSI...")
+    try:
+        output = subprocess.check_output("netsh wlan show interfaces", shell=True).decode('utf-8')
+        match = re.search(r"Signal\s*:\s*(\d+)%", output)
+
+        if match:
+            quality = int(match.group(1))
+            # Standard formula to map 0-100% quality to roughly -100 to -50 dBm
+            if quality <= 0:
+                rssi = -100
+            elif quality >= 100:
+                rssi = -50
+            else:
+                rssi = (quality / 2) - 100
+            return f"{int(rssi)} dBm"
+        return "Unknown (Are you connected to Wi-Fi?)"
+    except Exception:
+        return "Error reading Wi-Fi status."
+
+
 def main():
-    """Code goes here."""
+    location = input("What is your current location?\n>>> ")
+    logger.debug("Testing WIFI at %s", location)
+    signal = get_wifi_signal()
+    logger.debug("[Wi-Fi Status] Signal Strength: %s", signal)
+
+    rssi_val = get_windows_rssi()
+    logger.debug("[Wi-Fi Status] RSSI: %s", rssi_val)
+
+    # 2. Run Speed Test
+    dl, ul, png = run_speed_test()
+    if dl:
+        logger.debug("[Speed Test] Download: %.2f Mbps", dl)
+        logger.debug("[Speed Test] Upload:   %.2f Mbps", ul)
+        logger.debug("[Speed Test] Ping:     %.2f ms", png)
 
 
 class JsonArgsFilter(logging.Filter):
@@ -84,7 +159,7 @@ def setup_logging() -> Path:
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
 
-    enforce_max_log_count(log_dir, max_log_files=5)
+    enforce_max_log_count(log_dir)
 
     return log_path
 
