@@ -12,7 +12,7 @@ Measurements include
 - Internet ping
 - Internet speed test.
 
-Measurement groups can be enabled or disabled in `main()` as needed. All are enabled by default.
+Measurement groups can be enabled or disabled in `main()` as needed. All are enabled by default except for default gateway.
 
 This script is intended for Windows systems and relies on Windows networking utilities such as `netsh`, `ipconfig`, and `ping`. Internet speed testing requires the `speedtest-cli` package, and LAN throughput testing requires `iperf3`.
 
