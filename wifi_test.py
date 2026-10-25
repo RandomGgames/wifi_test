@@ -176,90 +176,95 @@ def save_test_result(test_result, filename: Path = Path("tests.csv")):
 
 
 def main():
-    log_test_info = True
-    log_wifi_details = True
-    log_gateway_details = False
-    measure_gateway_ping = True
-    measure_internet_ping = True
-    perform_speed_test = True
-    filepath = Path(r"wifi_test_results.csv")
+    while True:
+        log_test_info = True
+        log_wifi_details = True
+        log_gateway_details = False
+        measure_gateway_ping = True
+        measure_internet_ping = True
+        perform_speed_test = True
+        filepath = Path(r"wifi_test_results.csv")
 
-    location = None
-    scenario = None
-    remarks = None
+        location = None
+        scenario = None
+        remarks = None
 
-    bssid = None
-    signal = None
-    rssi = None
+        bssid = None
+        signal = None
+        rssi = None
 
-    gateway = None
-    gateway_ping_min = None
-    gateway_ping_avg = None
-    gateway_ping_max = None
+        gateway = None
+        gateway_ping_min = None
+        gateway_ping_avg = None
+        gateway_ping_max = None
 
-    internet_ping_min = None
-    internet_ping_avg = None
-    internet_ping_max = None
+        internet_ping_min = None
+        internet_ping_avg = None
+        internet_ping_max = None
 
-    download_speed = None
-    upload_speed = None
+        download_speed = None
+        upload_speed = None
 
-    if log_test_info:
-        location = input("Describe test location: ")
-        scenario = input("Describe test scenario: ")
-        remarks = input("Describe any other test remarks: ")
+        if log_test_info:
+            location = input("Describe test location: ")
+            scenario = input("Describe test scenario: ")
+            remarks = input("Describe any other test remarks: ")
 
-        logger.debug("Location: %s", location)
-        logger.debug("Scenario: %s", scenario)
-        logger.debug("Remarks: %s", remarks)
+            logger.debug("Location: %s", location)
+            logger.debug("Scenario: %s", scenario)
+            logger.debug("Remarks: %s", remarks)
 
-    if log_wifi_details:
-        bssid, signal, rssi = get_wifi_details()
-        logger.debug("BSSID: %s", bssid)
-        logger.debug("Signal: %s%%", signal)
-        logger.debug("Estimated RSSI: %s", rssi)
+        if log_wifi_details:
+            bssid, signal, rssi = get_wifi_details()
+            logger.debug("BSSID: %s", bssid)
+            logger.debug("Signal: %s%%", signal)
+            logger.debug("Estimated RSSI: %s", rssi)
 
-    if log_gateway_details or measure_gateway_ping:
-        gateway = get_default_gateway()
-        if log_gateway_details:
-            logger.debug("Gateway: %s", gateway)
-        if measure_gateway_ping:
-            gateway_ping_min, gateway_ping_avg, gateway_ping_max = ping_host(gateway) if gateway else (None, None, None)
-            logger.debug("Gateway ping min: %s ms", gateway_ping_min)
-            logger.debug("Gateway ping max: %s ms", gateway_ping_max)
-            logger.debug("Gateway ping average: %s ms", gateway_ping_avg)
+        if log_gateway_details or measure_gateway_ping:
+            gateway = get_default_gateway()
+            if log_gateway_details:
+                logger.debug("Gateway: %s", gateway)
+            if measure_gateway_ping:
+                gateway_ping_min, gateway_ping_avg, gateway_ping_max = ping_host(gateway) if gateway else (None, None, None)
+                logger.debug("Gateway ping min: %s ms", gateway_ping_min)
+                logger.debug("Gateway ping max: %s ms", gateway_ping_max)
+                logger.debug("Gateway ping average: %s ms", gateway_ping_avg)
 
-    if measure_internet_ping:
-        internet_ping_min, internet_ping_avg, internet_ping_max = ping_host("1.1.1.1")
-        logger.debug("Internet ping min: %s ms", internet_ping_min)
-        logger.debug("Internet ping max: %s ms", internet_ping_max)
-        logger.debug("Internet ping average: %s ms", internet_ping_avg)
+        if measure_internet_ping:
+            internet_ping_min, internet_ping_avg, internet_ping_max = ping_host("1.1.1.1")
+            logger.debug("Internet ping min: %s ms", internet_ping_min)
+            logger.debug("Internet ping max: %s ms", internet_ping_max)
+            logger.debug("Internet ping average: %s ms", internet_ping_avg)
 
-    if perform_speed_test:
-        download_speed, upload_speed = run_internet_speed_test()
-        logger.debug("Download Speed: %s Mbps", download_speed)
-        logger.debug("Upload Speed: %s Mbps", upload_speed)
+        if perform_speed_test:
+            download_speed, upload_speed = run_internet_speed_test()
+            logger.debug("Download Speed: %s Mbps", download_speed)
+            logger.debug("Upload Speed: %s Mbps", upload_speed)
 
-    test_result = {
-        "Timestamp": datetime.now().isoformat(timespec="seconds"),
-        "Location": location,
-        "Scenario": scenario,
-        "Remarks": remarks,
-        "BSSID": bssid,
-        "Signal %": signal,
-        "RSSI Est.": rssi,
-        "Gateway": gateway,
-        "Gateway Ping Min (ms)": gateway_ping_min,
-        "Gateway Ping Max (ms)": gateway_ping_max,
-        "Gateway Ping Avg (ms)": gateway_ping_avg,
-        "Internet Ping Min (ms)": internet_ping_min,
-        "Internet Ping Max (ms)": internet_ping_max,
-        "Internet Ping Avg (ms)": internet_ping_avg,
-        "Download (Mbps)": download_speed,
-        "Upload (Mbps)": upload_speed
-    }
+        test_result = {
+            "Timestamp": datetime.now().isoformat(timespec="seconds"),
+            "Location": location,
+            "Scenario": scenario,
+            "Remarks": remarks,
+            "BSSID": bssid,
+            "Signal %": signal,
+            "RSSI Est.": rssi,
+            "Gateway": gateway,
+            "Gateway Ping Min (ms)": gateway_ping_min,
+            "Gateway Ping Max (ms)": gateway_ping_max,
+            "Gateway Ping Avg (ms)": gateway_ping_avg,
+            "Internet Ping Min (ms)": internet_ping_min,
+            "Internet Ping Max (ms)": internet_ping_max,
+            "Internet Ping Avg (ms)": internet_ping_avg,
+            "Download (Mbps)": download_speed,
+            "Upload (Mbps)": upload_speed
+        }
 
-    save_test_result(test_result, filename=filepath)
+        save_test_result(test_result, filename=filepath)
+
+        test_again = input("Test again? y/yes or n/no (defaults to no if empty): ")
+        if not test_again.lower().strip() in ("y", "yes"):
+            break
 
 
 class JsonArgsFilter(logging.Filter):
