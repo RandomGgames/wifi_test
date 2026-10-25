@@ -30,7 +30,7 @@ import sys
 
 import speedtest
 
-__version__ = "1.0.0"  # Major.Minor.Patch
+__version__ = "1.0.1"  # Major.Minor.Patch
 
 logger = logging.getLogger(__name__)
 
